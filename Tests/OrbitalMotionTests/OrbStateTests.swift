@@ -30,4 +30,29 @@ final class OrbStateTests: XCTestCase {
         XCTAssertNotEqual(OrbState.idle, OrbState.listening)
         XCTAssertEqual(OrbState.speaking(audioLevel: 0.5), OrbState.speaking(audioLevel: 0.5))
     }
+
+    func testAllStatesHavePositivePulseSpeed() {
+        let states: [OrbState] = [.idle, .listening, .thinking, .speaking(audioLevel: 0), .speaking(audioLevel: 1)]
+        for state in states {
+            XCTAssertGreaterThan(state.pulseSpeed, 0, "pulseSpeed must be > 0 for \(state)")
+        }
+    }
+
+    func testAllStatesGlowOpacityInUnitRange() {
+        let states: [OrbState] = [.idle, .listening, .thinking, .speaking(audioLevel: 0), .speaking(audioLevel: 1)]
+        for state in states {
+            let o = state.glowOpacity
+            XCTAssertGreaterThanOrEqual(o, 0.0, "\(state) glowOpacity below 0")
+            XCTAssertLessThanOrEqual(o, 1.0, "\(state) glowOpacity above 1")
+        }
+    }
+
+    func testThinkingScaleSmallerThanListening() {
+        XCTAssertLessThan(OrbState.thinking.baseScale, OrbState.listening.baseScale)
+    }
+
+    func testSpeakingAtZeroAudioEqualsIdle() {
+        // At audioLevel 0, speaking scale should equal idle (1.0 + 0 * 0.18 = 1.0)
+        XCTAssertEqual(OrbState.speaking(audioLevel: 0).baseScale, OrbState.idle.baseScale, accuracy: 0.001)
+    }
 }
